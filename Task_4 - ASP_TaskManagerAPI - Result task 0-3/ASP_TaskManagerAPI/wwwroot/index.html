@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Tasks API — тест</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        section {
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+        }
+
+        input, textarea {
+            padding: 4px;
+            margin: 4px 6px 4px 0;
+        }
+
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест Tasks API</h1>
+
+    <!-- GET all + фильтры -->
+    <section>
+        <h3>GET /api/tasks</h3>
+        <button onclick="getAll()">Все задачи</button>
+        <button onclick="getFiltered('completed', true)">Выполненные</button>
+        <button onclick="getFiltered('completed', false)">Невыполненные</button>
+        <input id="priorityFilter" type="number" placeholder="приоритет" style="width:100px" />
+        <button onclick="getByPriority()">По приоритету</button>
+    </section>
+
+    <!-- GET by id -->
+    <section>
+        <h3>GET /api/tasks/{id}</h3>
+        <input id="getId" type="number" placeholder="id" style="width:80px" />
+        <button onclick="getById()">Найти</button>
+    </section>
+
+    <!-- POST -->
+    <section>
+        <h3>POST /api/tasks</h3>
+        <input id="postTitle" type="text" placeholder="Заголовок" />
+        <input id="postPriority" type="number" placeholder="Приоритет 1-5" style="width:130px" />
+        <br />
+        <textarea id="postDescription" placeholder="Описание" rows="2" cols="50"></textarea>
+        <br />
+        <label><input id="postCompleted" type="checkbox" /> выполнена</label>
+        <button onclick="createTask()">Создать</button>
+    </section>
+
+    <!-- PUT -->
+    <section>
+        <h3>PUT /api/tasks/{id}</h3>
+        <input id="putId" type="number" placeholder="id" style="width:80px" />
+        <input id="putTitle" type="text" placeholder="Новый заголовок" />
+        <input id="putPriority" type="number" placeholder="Приоритет" style="width:110px" />
+        <br />
+        <textarea id="putDescription" placeholder="Новое описание" rows="2" cols="50"></textarea>
+        <br />
+        <label><input id="putCompleted" type="checkbox" /> выполнена</label>
+        <button onclick="updateTask()">Обновить</button>
+    </section>
+
+    <!-- DELETE -->
+    <section>
+        <h3>DELETE /api/tasks/{id}</h3>
+        <input id="delId" type="number" placeholder="id" style="width:80px" />
+        <button onclick="deleteTask()">Удалить</button>
+    </section>
+
+    <!-- Лог -->
+    <section>
+        <h3>Ответ сервера</h3>
+        <pre id="log">—</pre>
+    </section>
+
+    <script>
+        const API = '/api/tasks';
+        const log = document.getElementById('log');
+
+        async function callApi(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                const text = await response.text();
+
+                // Пробуем красиво отформатировать JSON, если это JSON
+                let body = text;
+                try {
+                    body = JSON.stringify(JSON.parse(text), null, 2);
+                } catch (_) { /* не JSON — оставляем как есть */ }
+
+                log.textContent =
+                    `HTTP ${response.status} ${response.statusText}\n\n` +
+                    (body || '(пустое тело)');
+            } catch (err) {
+                log.textContent = 'Ошибка сети: ' + err.message;
+            }
+        }
+
+        // --- GET ---
+        function getAll() {
+            callApi(API);
+        }
+
+        function getFiltered(key, value) {
+            callApi(`${API}?${key}=${value}`);
+        }
+
+        function getByPriority() {
+            const p = document.getElementById('priorityFilter').value;
+            if (p === '') {
+                log.textContent = 'Введи приоритет';
+                return;
+            }
+            callApi(`${API}?priority=${p}`);
+        }
+
+        function getById() {
+            const id = document.getElementById('getId').value;
+            callApi(`${API}/${id}`);
+        }
+
+        // --- POST ---
+        function createTask() {
+            const task = {
+                title: document.getElementById('postTitle').value,
+                description: document.getElementById('postDescription').value,
+                priority: parseInt(document.getElementById('postPriority').value) || 0,
+                isCompleted: document.getElementById('postCompleted').checked
+            };
+
+            callApi(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task)
+            });
+        }
+
+        // --- PUT ---
+        function updateTask() {
+            const id = document.getElementById('putId').value;
+            const task = {
+                title: document.getElementById('putTitle').value,
+                description: document.getElementById('putDescription').value,
+                priority: parseInt(document.getElementById('putPriority').value) || 0,
+                isCompleted: document.getElementById('putCompleted').checked
+            };
+
+            callApi(`${API}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task)
+            });
+        }
+
+        // --- DELETE ---
+        function deleteTask() {
+            const id = document.getElementById('delId').value;
+            callApi(`${API}/${id}`, { method: 'DELETE' });
+        }
+    </script>
+</body>
+</html>
