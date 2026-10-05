@@ -1,0 +1,27 @@
+﻿<!--HTML:-->
+<button onclick="addBook()">Добавить книгу</button>
+<button onclick="deleteBook(1)">Удалить книгу 1</button>
+
+<script>
+        // JS:
+async function addBook() {
+        const response = await fetch('/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: 5,
+                title: 'Война и мир',
+                author: 'Толстой'
+            })
+        });
+
+    console.log("AddBook.responseStatus: ", response.status);
+}
+
+async function deleteBook(id) {
+        const response = await fetch(`/book/${id}`, {
+            method: 'DELETE'
+        });
+    console.log("DeleteBook.responseStatus:", response.status);
+}
+</script>
