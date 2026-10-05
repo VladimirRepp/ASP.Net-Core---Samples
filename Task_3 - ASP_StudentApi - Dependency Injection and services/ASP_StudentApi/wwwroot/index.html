@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Students API — тест</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        section {
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+        }
+
+        input {
+            padding: 4px;
+            margin-right: 6px;
+        }
+
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест Students API</h1>
+
+    <!-- GET всех -->
+    <section>
+        <h3>GET /api/students</h3>
+        <button onclick="getAll()">Загрузить всех</button>
+    </section>
+
+    <!-- GET по id -->
+    <section>
+        <h3>GET /api/students/{id}</h3>
+        <input id="getId" type="number" placeholder="id" />
+        <button onclick="getById()">Найти</button>
+    </section>
+
+    <!-- POST -->
+    <section>
+        <h3>POST /api/students</h3>
+        <input id="postName" type="text" placeholder="Имя" />
+        <input id="postAge" type="number" placeholder="Возраст" />
+        <button onclick="createStudent()">Создать</button>
+    </section>
+
+    <!-- PUT -->
+    <section>
+        <h3>PUT /api/students/{id}</h3>
+        <input id="putId" type="number" placeholder="id" />
+        <input id="putName" type="text" placeholder="Новое имя" />
+        <input id="putAge" type="number" placeholder="Новый возраст" />
+        <button onclick="updateStudent()">Обновить</button>
+    </section>
+
+    <!-- DELETE -->
+    <section>
+        <h3>DELETE /api/students/{id}</h3>
+        <input id="delId" type="number" placeholder="id" />
+        <button onclick="deleteStudent()">Удалить</button>
+    </section>
+
+    <!-- Лог -->
+    <section>
+        <h3>Ответ сервера</h3>
+        <pre id="log">—</pre>
+    </section>
+
+    <script>
+        const log = document.getElementById('log');
+
+        // Универсальная обёртка — чтобы не дублировать fetch в каждой функции
+        async function callApi(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                const text = await response.text();
+
+                log.textContent =
+                    `HTTP ${response.status} ${response.statusText}\n\n` +
+                    (text || '(пустое тело)');
+            } catch (err) {
+                log.textContent = 'Ошибка сети: ' + err.message;
+            }
+        }
+
+        function getAll() {
+            callApi('/api/students');
+        }
+
+        function getById() {
+            const id = document.getElementById('getId').value;
+            callApi(`/api/students/${id}`);
+        }
+
+        function createStudent() {
+            const name = document.getElementById('postName').value;
+            const age = parseInt(document.getElementById('postAge').value);
+
+            callApi('/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, age: age })
+            });
+        }
+
+        function updateStudent() {
+            const id = document.getElementById('putId').value;
+            const name = document.getElementById('putName').value;
+            const age = parseInt(document.getElementById('putAge').value);
+
+            callApi(`/api/students/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, age: age })
+            });
+        }
+
+        function deleteStudent() {
+            const id = document.getElementById('delId').value;
+            callApi(`/api/students/${id}`, { method: 'DELETE' });
+        }
+    </script>
+</body>
+</html>
